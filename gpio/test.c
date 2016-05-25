@@ -48,6 +48,7 @@ int gpio_get(const char* gpioport, const char* value)
 {
     int fd;
     int ret;
+    char ch;
     
     fd = open(gpioport, O_WRONLY, 0666);
     if (fd < 0)
@@ -56,10 +57,10 @@ int gpio_get(const char* gpioport, const char* value)
         return -1;
     }    
     
-    ret = read(fd, value, 1);
+    ret = read(fd, &ch, 1);
     if (ret >= 0)
     {
-        printf("ch = %d\n", *value);            
+        printf("ch = %d\n", ch);            
     }
     
     close(fd);
@@ -80,7 +81,7 @@ int main()
         
         gpio_get(GPIOC4_VALUE, &ch);       
 
-        if (count >= 5000000)
+        if (count >= 5000)
         {
             printf("runing\n");
             
