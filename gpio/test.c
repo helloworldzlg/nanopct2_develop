@@ -33,7 +33,7 @@ int gpio_set(const char* gpioport, const char* level)
     fd = open(gpioport, O_WRONLY, 0666);
     if (fd < 0)
     {
-        printf("Error: can't open gpio c4.\n");
+        printf("Error: can't open gpio %s\n", gpioport);
         return -1;
     }    
     
@@ -52,7 +52,7 @@ int gpio_get(const char* gpioport, const char* value)
     fd = open(gpioport, O_WRONLY, 0666);
     if (fd < 0)
     {
-        printf("Error: can't open gpio c4.\n");
+        printf("Error: can't open gpio %s\n", gpioport);
         return -1;
     }    
     
