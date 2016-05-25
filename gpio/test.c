@@ -4,7 +4,7 @@
 #define GPIO_EXPORT          "/sys/class/gpio/export"
 #define GPIOC4_DIR           "/sys/class/gpio/gpio68/direction"
 #define GPIOC4_VALUE         "/sys/class/gpio/gpio68/value"
-
+#define DELAY_TIME           (50000000)
 
 int init()
 {
@@ -55,11 +55,11 @@ int main()
     {
         gpio_set(GPIOC4_DIR, "high");
         
-        for (i = 0; i < 100000; i++);
+        for (i = 0; i < DELAY_TIME; i++);
         
         gpio_set(GPIOC4_DIR, "low");
         
-        for (i = 0; i < 100000; i++);
+        for (i = 0; i < DELAY_TIME; i++);
 
         printf("count = %d\n", count++);              
     }
