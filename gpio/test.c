@@ -21,7 +21,7 @@ int init()
     
     close(fd);
     
-    gpio_set(GPIOC4_VALUE, "low");
+    gpio_set(GPIOC4_DIR, "low");
     
     return 0;
 }
@@ -47,17 +47,21 @@ int gpio_set(const char* gpioport, const char* level)
 int main()
 {
     int ret;
-    int count = 0;
+    int i,count = 0;
     
     ret = init();
     
-    while (count++ < 10)
+    while (count < 10)
     {
         gpio_set(GPIOC4_DIR, "high");
         
-        sleep(500);
+        for (i = 0; i < 100000; i++);
         
-        gpio_set(GPIOC4_DIR, "low");        
+        gpio_set(GPIOC4_DIR, "low");
+        
+        for (i = 0; i < 100000; i++);
+
+        printf("count = %d\n", count++);              
     }
     
     return 0;
