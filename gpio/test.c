@@ -51,13 +51,13 @@ int main()
     
     ret = init();
     
-    while (count++ < 50)
+    while (count++ < 10)
     {
-        gpio_set(GPIOC4_VALUE, "high");
+        gpio_set(GPIOC4_DIR, "high");
         
         sleep(500);
         
-        gpio_set(GPIOC4_VALUE, "low");        
+        gpio_set(GPIOC4_DIR, "low");        
     }
     
     return 0;
