@@ -21,7 +21,7 @@ int init()
     
     close(fd);
     
-    gpio_set(GPIOC4_DIR, "low");
+    gpio_set(GPIOC4_DIR, "in");
     
     return 0;
 }
@@ -44,24 +44,51 @@ int gpio_set(const char* gpioport, const char* level)
     return 0;
 }
 
+int gpio_get(const char* gpioport, const char* value)
+{
+    int fd;
+    int ret;
+    
+    fd = open(gpioport, O_WRONLY, 0666);
+    if (fd < 0)
+    {
+        printf("Error: can't open gpio c4.\n");
+        return -1;
+    }    
+    
+    ret = read(fd, value, 1);
+    if (ret >= 0)
+    {
+        printf("ch = %d\n", *value);            
+    }
+    
+    close(fd);
+    
+    return 0;    
+    
+}
+
 int main()
 {
     int ret;
-    int i,count = 0;
+    int count = 0;
     
     ret = init();
     
-    while (count < 10)
+    while (1)
     {
-        gpio_set(GPIOC4_DIR, "high");
+        char ch;
         
-        for (i = 0; i < DELAY_TIME; i++);
-        
-        gpio_set(GPIOC4_DIR, "low");
-        
-        for (i = 0; i < DELAY_TIME; i++);
+        gpio_get(GPIOC4_VALUE, &ch);        
 
-        printf("count = %d\n", count++);              
+        if (count >= 5000000)
+        {
+            printf("runing\n");
+            
+            count = 0;
+        }
+        
+        count++;
     }
     
     return 0;
