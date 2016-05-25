@@ -64,8 +64,7 @@ int gpio_get(const char* gpioport, const char* value)
     
     close(fd);
     
-    return 0;    
-    
+    return 0;        
 }
 
 int main()
@@ -77,14 +76,9 @@ int main()
     
     while (1)
     {
-        int value;
+        char ch;
         
-        value = gpio_get_value(68);
-        if (value == 1)
-        {
-            printf("value = %d\n", value);
-        }
-        
+        gpio_get(GPIOC4_VALUE, &ch);       
 
         if (count >= 5000000)
         {
