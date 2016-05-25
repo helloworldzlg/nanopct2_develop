@@ -77,9 +77,14 @@ int main()
     
     while (1)
     {
-        char ch;
+        int value;
         
-        gpio_get(GPIOC4_VALUE, &ch);        
+        value = gpio_get_value(68);
+        if (value == 1)
+        {
+            printf("value = %d\n", value);
+        }
+        
 
         if (count >= 5000000)
         {
