@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-#define GPIO_EXPORT          "/sys/class/export"
+#define GPIO_EXPORT          "/sys/class/gpio/export"
 #define GPIOC4_DIR           "/sys/class/gpio/gpio68/direction"
 #define GPIOC4_VALUE         "/sys/class/gpio/gpio68/value"
 
