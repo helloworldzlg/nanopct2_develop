@@ -1,3 +1,60 @@
+/******************************************************************************
+
+                  版权所有 (C), 2001-2011, RobotAI.club: zlg
+
+ ******************************************************************************
+  文 件 名   : i2c_master.c
+  版 本 号   : 初稿
+  作    者   : zlg
+  生成日期   : 2016年5月24日
+  最近修改   :
+  功能描述   : i2c_master文件
+  函数列表   :
+              i2c_read_proc
+              i2c_write_proc
+              main
+              xfm20512_enter_wakeup
+              xfm20512_exit_wakeup
+              xfm20512_get_degree
+              xfm20512_get_version
+  修改历史   :
+  1.日    期   : 2016年5月24日
+    作    者   : zlg
+    修改内容   : 创建文件
+
+******************************************************************************/
+
+/*----------------------------------------------*
+ * 包含头文件                                   *
+ *----------------------------------------------*/
+
+/*----------------------------------------------*
+ * 外部变量说明                                 *
+ *----------------------------------------------*/
+
+/*----------------------------------------------*
+ * 外部函数原型说明                             *
+ *----------------------------------------------*/
+
+/*----------------------------------------------*
+ * 内部函数原型说明                             *
+ *----------------------------------------------*/
+
+/*----------------------------------------------*
+ * 全局变量                                     *
+ *----------------------------------------------*/
+
+/*----------------------------------------------*
+ * 模块级变量                                   *
+ *----------------------------------------------*/
+
+/*----------------------------------------------*
+ * 常量定义                                     *
+ *----------------------------------------------*/
+
+/*----------------------------------------------*
+ * 宏定义                                       *
+ *----------------------------------------------*/
 #include <stdio.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -9,8 +66,34 @@
 #define I2C_BUF_LEN             (256)
 #define DELAY_MS(ms)            usleep((ms) * 1000)
 
+/*****************************************************************************
+ 函 数 名  : i2c_write_proc
+ 功能描述  : I2C写处理
+ 输入参数  : int fd              
+             unsigned char addr  
+             unsigned char reg   
+             unsigned char *val  
+             unsigned char len   
+ 输出参数  : 无
+ 返 回 值  : static
+ 调用函数  : 
+ 被调函数  : 
+ 
+ 修改历史      :
+  1.日    期   : 2016年5月24日
+    作    者   : zlg
+    修改内容   : 新生成函数
 
-static int i2c_write_proc(int fd, unsigned char addr, unsigned char reg, unsigned char *val, unsigned char len) {
+*****************************************************************************/
+static int i2c_write_proc
+(
+    int fd, 
+    unsigned char addr, 
+    unsigned char reg, 
+    unsigned char *val, 
+    unsigned char len
+)
+{
     unsigned char buf[I2C_BUF_LEN];
     struct i2c_rdwr_ioctl_data cmd;
     struct i2c_msg msg[1];
@@ -26,11 +109,12 @@ static int i2c_write_proc(int fd, unsigned char addr, unsigned char reg, unsigne
     msg[0].buf   = buf;             // Data buffer
 
     /* Construct the i2c_rdwr_ioctl_data struct */
-    cmd.msgs = msg;                 // Message
+    cmd.msgs  = msg;                 // Message
     cmd.nmsgs = sizeof(msg) / sizeof(struct i2c_msg);
 
     /* Transfer the i2c command packet to the kernel and verify it worked */
-    if (ioctl(fd, I2C_RDWR, &cmd) < 0) {
+    if (ioctl(fd, I2C_RDWR, &cmd) < 0) 
+    {
         printf("Unable to send data!\n");
         return 1;
     }
@@ -38,7 +122,34 @@ static int i2c_write_proc(int fd, unsigned char addr, unsigned char reg, unsigne
     return 0;
 }
 
-static int i2c_read_proc(int fd, unsigned char addr, unsigned char reg, unsigned char *val, unsigned char len) {
+/*****************************************************************************
+ 函 数 名  : i2c_read_proc
+ 功能描述  : I2C读处理
+ 输入参数  : int fd              
+             unsigned char addr  
+             unsigned char reg   
+             unsigned char *val  
+             unsigned char len   
+ 输出参数  : 无
+ 返 回 值  : static
+ 调用函数  : 
+ 被调函数  : 
+ 
+ 修改历史      :
+  1.日    期   : 2016年5月24日
+    作    者   : zlg
+    修改内容   : 新生成函数
+
+*****************************************************************************/
+static int i2c_read_proc
+(
+    int fd, 
+    unsigned char addr, 
+    unsigned char reg, 
+    unsigned char *val, 
+    unsigned char len
+) 
+{
     struct i2c_rdwr_ioctl_data cmd;
     struct i2c_msg msg[2];
 
@@ -57,7 +168,8 @@ static int i2c_read_proc(int fd, unsigned char addr, unsigned char reg, unsigned
     cmd.nmsgs = sizeof(msg) / sizeof(struct i2c_msg);
 
     /* Send the request to the kernel and get the result back */
-    if (ioctl(fd, I2C_RDWR, &cmd) < 0) {
+    if (ioctl(fd, I2C_RDWR, &cmd) < 0) 
+    {
         printf("Unable to send data!\n");
         return -1;
     }
@@ -65,6 +177,22 @@ static int i2c_read_proc(int fd, unsigned char addr, unsigned char reg, unsigned
     return 0;
 }
 
+/*****************************************************************************
+ 函 数 名  : xfm20512_get_version
+ 功能描述  : 获取版本信息
+ 输入参数  : int fd                 
+             unsigned int *version  
+ 输出参数  : 无
+ 返 回 值  : 
+ 调用函数  : 
+ 被调函数  : 
+ 
+ 修改历史      :
+  1.日    期   : 2016年5月24日
+    作    者   : zlg
+    修改内容   : 新生成函数
+
+*****************************************************************************/
 int xfm20512_get_version(int fd, unsigned int *version)
 {
     unsigned int data = 0x00000F00;
@@ -87,6 +215,22 @@ int xfm20512_get_version(int fd, unsigned int *version)
     return 0;
 }
 
+/*****************************************************************************
+ 函 数 名  : xfm20512_get_degree
+ 功能描述  : 获取角度信息
+ 输入参数  : int fd                
+             unsigned int *degree  
+ 输出参数  : 无
+ 返 回 值  : 
+ 调用函数  : 
+ 被调函数  : 
+ 
+ 修改历史      :
+  1.日    期   : 2016年5月24日
+    作    者   : zlg
+    修改内容   : 新生成函数
+
+*****************************************************************************/
 int xfm20512_get_degree(int fd, unsigned int *degree)
 {
     unsigned int data = 0x00001000;
@@ -148,6 +292,21 @@ int xfm20512_exit_wakeup(int fd, unsigned int beam)
     return 0;
 }
 
+/*****************************************************************************
+ 函 数 名  : main
+ 功能描述  : 主处理
+ 输入参数  : 无
+ 输出参数  : 无
+ 返 回 值  : 
+ 调用函数  : 
+ 被调函数  : 
+ 
+ 修改历史      :
+  1.日    期   : 2016年5月24日
+    作    者   : zlg
+    修改内容   : 新生成函数
+
+*****************************************************************************/
 int main()
 {
     printf("\n********  i2c master test!!  ********\n");
