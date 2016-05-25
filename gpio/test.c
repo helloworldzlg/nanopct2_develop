@@ -10,7 +10,7 @@ int init()
 {
     int fd;
     
-    fd = open(GPIO_EXPORT, O_WRONLY, 0666);
+    fd = open(GPIO_EXPORT, O_WRONLY, 0777);
     if (fd < 0)
     {
         printf("Error: can't open export.\n");
@@ -30,7 +30,7 @@ int gpio_set(const char* gpioport, const char* level)
 {
     int fd;
     
-    fd = open(gpioport, O_WRONLY, 0666);
+    fd = open(gpioport, O_WRONLY, 0777);
     if (fd < 0)
     {
         printf("Error: can't open gpio %s\n", gpioport);
@@ -50,7 +50,7 @@ int gpio_get(const char* gpioport, const char* value)
     int ret;
     char ch;
     
-    fd = open(gpioport, O_WRONLY, 0666);
+    fd = open(gpioport, O_WRONLY, 0777);
     if (fd < 0)
     {
         printf("Error: can't open gpio %s\n", gpioport);
