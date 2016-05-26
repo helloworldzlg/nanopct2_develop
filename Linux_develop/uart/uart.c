@@ -100,17 +100,19 @@ int SerialPort_read(const int fd, char* rx_data)
     return UART_SUCCESS;  
 }
 
-int Robot_Visual_Data_Write(const int fd, ROBOT_VISUAL_S *visual)
+int Robot_Visual_Data_Write(const int fd, void *visual)
 {
     int ret;
     char buf[TRANSMIT_DATA_SIZE];
     memset(buf, '\0', sizeof(buf));
-    
-    buf[0] = visual->sync_quality;
-    buf[1] = visual->angle_q6_checkbit & 0xFF;
-    buf[2] = (visual->angle_q6_checkbit >> 8) & 0xFF;
-    buf[3] = visual->distance_q2 & 0xFF;
-    buf[4] = (visual->distance_q2 >> 8) & 0xFF;
+
+    ROBOT_VISUAL_S* visual_in = (ROBOT_VISUAL_S*)visual;
+
+    buf[0] = visual_in->sync_quality;
+    buf[1] = visual_in->angle_q6_checkbit & 0xFF;
+    buf[2] = (visual_in->angle_q6_checkbit >> 8) & 0xFF;
+    buf[3] = visual_in->distance_q2 & 0xFF;
+    buf[4] = (visual_in->distance_q2 >> 8) & 0xFF;
     
     ret = SerialPort_write(fd, buf, sizeof(ROBOT_VISUAL_S));
     if (ret != UART_SUCCESS)
