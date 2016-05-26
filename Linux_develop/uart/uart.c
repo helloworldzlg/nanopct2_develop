@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
-#include <uart.h>
+#include "uart.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -100,7 +100,26 @@ int SerialPort_read(const int fd, char* rx_data)
     return UART_SUCCESS;  
 }
 
-
+int Robot_Visual_Data_Write(const int fd, ROBOT_VISUAL_S *visual)
+{
+    int ret;
+    char buf[TRANSMIT_DATA_SIZE];
+    memset(buf, '\0', sizeof(buf));
+    
+    buf[0] = visual->sync_quality;
+    buf[1] = visual->angle_q6_checkbit & 0xFF;
+    buf[2] = (visual->angle_q6_checkbit >> 8) & 0xFF;
+    buf[3] = visual->distance_q2 & 0xFF;
+    buf[4] = (visual->distance_q2 >> 8) & 0xFF;
+    
+    ret = SerialPort_write(fd, buf, sizeof(ROBOT_VISUAL_S));
+    if (ret != UART_SUCCESS)
+    {
+        return ret;        
+    }
+    
+    return UART_SUCCESS; 
+}
 
 
 
