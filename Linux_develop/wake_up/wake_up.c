@@ -189,13 +189,6 @@ int gpio_fd_close(int fd)
 	return close(fd);
 }
 
-#include <stdio.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include <linux/i2c-dev.h>
-#include <linux/i2c.h>
-
 #define xfm20512_ADDR           (0x47)
 #define I2C_BUF_LEN             (256)
 #define DELAY_MS(ms)            usleep((ms) * 1000)
@@ -444,7 +437,7 @@ int i2c_init()
     }
 
     /* 注册从机 */
-    if (ioctl(fd, I2C_SLAVE, xfm20512_ADDR) < 0)
+    if (ioctl(i2c_fileId, I2C_SLAVE, xfm20512_ADDR) < 0)
     {
         perror("ioctl error\n");
         return -1;
@@ -504,23 +497,24 @@ int main(int argc, char **argv, char **envp)
 		rc = poll(fdset, nfds, timeout);      
 
 		if (rc < 0) {
-			printf("\npoll() failed!\n");
+			//printf("\npoll() failed!\n");
 			return -1;
 		}
       
 		if (rc == 0) {
-			printf(".");
+			//printf(".");
 		}
             
 		if (fdset[1].revents & POLLPRI) {
 			len = read(fdset[1].fd, buf, MAX_BUF);
 			xfm20512_get_degree(i2c_fileId, &degree);
-			printf("\npoll() GPIO %d interrupt occurred degree = %d\n", gpio, degree);
+			printf("len = %d, degree = %d\n", len, degree);
+			//printf("\npoll() GPIO %d interrupt occurred degree = %d\n", gpio, degree);
 		}
 
 		if (fdset[0].revents & POLLIN) {
 			(void)read(fdset[0].fd, buf, 1);
-			printf("\npoll() stdin read 0x%2.2X\n", (unsigned int) buf[0]);
+			//printf("\npoll() stdin read 0x%2.2X\n", (unsigned int) buf[0]);
 		}
 
 		fflush(stdout);
