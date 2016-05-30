@@ -17,6 +17,8 @@
 #define POLL_TIMEOUT (3 * 1000) /* 3 seconds */
 #define MAX_BUF 64
 
+unsigned int i2c_fileId;
+
 /****************************************************************
  * gpio_export
  ****************************************************************/
@@ -434,8 +436,8 @@ int i2c_init()
     int write_count = 0;
 
     /* 打开master侧的I2C-0接口 */
-    fd = open("/dev/i2c-0", O_RDWR);
-    if (fd == -1) 
+    i2c_fileId = open("/dev/i2c-0", O_RDWR);
+    if (i2c_fileId == -1) 
     {
         perror("Open i2c-0 Port Error!\n");
         return -1;
@@ -451,7 +453,7 @@ int i2c_init()
     /* 查询模块版本信息 */
     unsigned int version;
     
-    if (!xfm20512_get_version(fd, &version))
+    if (!xfm20512_get_version(i2c_fileId, &version))
     {
         printf("version = %d\n", version);
     }    
@@ -512,7 +514,7 @@ int main(int argc, char **argv, char **envp)
             
 		if (fdset[1].revents & POLLPRI) {
 			len = read(fdset[1].fd, buf, MAX_BUF);
-			xfm20512_get_degree(&degree);
+			xfm20512_get_degree(i2c_fileId, &degree);
 			printf("\npoll() GPIO %d interrupt occurred degree = %d\n", gpio, degree);
 		}
 
