@@ -469,6 +469,7 @@ int main(int argc, char **argv, char **envp)
 	int gpio_fd, timeout, rc;
 	char buf[MAX_BUF];
 	unsigned int gpio;
+	int degree;
 	int len;
 
 	if (argc < 2) {
@@ -511,7 +512,8 @@ int main(int argc, char **argv, char **envp)
             
 		if (fdset[1].revents & POLLPRI) {
 			len = read(fdset[1].fd, buf, MAX_BUF);
-			printf("\npoll() GPIO %d interrupt occurred\n", gpio);
+			xfm20512_get_degree(&degree);
+			printf("\npoll() GPIO %d interrupt occurred degree = %d\n", gpio, degree);
 		}
 
 		if (fdset[0].revents & POLLIN) {
