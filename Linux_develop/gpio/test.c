@@ -192,11 +192,9 @@ int main(int argc, char **argv, char **envp)
 	struct pollfd fdset[2];
 	int nfds = 2;
 	int gpio_fd, timeout, rc;
-	char *buf[MAX_BUF];
+	char buf[MAX_BUF];
 	unsigned int gpio;
 	int len;
-
-
 
 	if (argc < 2) {
 		printf("Usage: gpio-int <gpio-pin>\n\n");
