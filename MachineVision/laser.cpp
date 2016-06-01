@@ -255,9 +255,10 @@ int main(int argc, char** argv)
     MeasureResult result = { 0, 0, 0 };
     char buf[200];
     unsigned int count;
+    unsigned int cycle_count = 0;
+    
     while (true)
-    {
-        unsigned int cycle_count = 0;
+    {        
         cap >> currentFrame;
         undistort(currentFrame, ImgUndistort, CM, D);
         transpose(ImgUndistort, dst);
@@ -277,7 +278,7 @@ int main(int argc, char** argv)
             {
                 circle(dst2, cvPoint(laserDotArr[y], y), 2, Scalar(0, 255, 255));
                 calcDistanceByPos(laserDotArr[y], y, IMAGE_HEIGHT, &result);
-                if (0 == (cycle_count++ % 30))
+                if (0 == (cycle_count % 30))
                 {
                     count = 0;
                     memset((void*)buf, '\0', sizeof(buf));
@@ -304,6 +305,8 @@ int main(int argc, char** argv)
     
             }           
         }
+        
+        cycle_count++;
         
         transpose(dst2, dst);
         flip(dst, dst3, 0);
