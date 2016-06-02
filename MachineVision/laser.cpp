@@ -282,7 +282,7 @@ int main(int argc, char** argv)
                 
                 if ((y+1)%TRANSMIT_FREQ != 0)
                 {
-                    count += sprintf(buf + count, "%-d ", y);
+                    count = sprintf(buf, "%-d ", y);
                     count += sprintf(buf + count, "%-d\n", (unsigned short)result.distance);                    
                 }
                                                                 
