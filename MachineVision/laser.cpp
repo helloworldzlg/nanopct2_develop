@@ -21,7 +21,7 @@ const float PI = 3.1415926536;
 #define   UART_FAIL                                (-1) 
 #define   TRANSMIT_DATA_SIZE                       (512)
 
-
+#define   TRANSMIT_FREQ                            (2)
 
 struct MeasureResult
 {
@@ -280,13 +280,13 @@ int main(int argc, char** argv)
                 circle(dst2, cvPoint(laserDotArr[y], y), 2, Scalar(0, 255, 255));
                 calcDistanceByPos(laserDotArr[y], y, IMAGE_HEIGHT, &result);
                 
-                if ((y+1)%4 != 0)
+                if ((y+1)%TRANSMIT_FREQ != 0)
                 {
-                    count = sprintf(buf, "%-d ", y);
+                    count += sprintf(buf + count, "%-d ", y);
                     count += sprintf(buf + count, "%-d\n", (unsigned short)result.distance);                    
                 }
                                                                 
-                if (((y+1)%4 == 0) && (0 == cycle_count%5))
+                if ((0 == (y+1)%TRANSMIT_FREQ) && (0 == cycle_count%5))
                 {
                     count += sprintf(buf + count, "%-d ", y);
                     count += sprintf(buf + count, "%-d\n", (unsigned short)result.distance);
@@ -318,6 +318,7 @@ int main(int argc, char** argv)
         }
         
         cycle_count++;
+        while(1){};
         transpose(dst2, dst);
         flip(dst, dst3, 0);
         transpose(dst5, dst4);
