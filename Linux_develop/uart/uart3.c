@@ -3,7 +3,9 @@
 #include <fcntl.h>
 #include <termios.h>
 
-int main()
+int g_uart3_fileid;
+
+int SerialPort_init()
 {
 	printf("\n********  UART3 TEST!!  ********\n");
 	int fd = -1;
@@ -26,6 +28,15 @@ int main()
 	tcflush(fd, TCIFLUSH);
 
 	tcsetattr(fd, TCSANOW, &options);
+
+	g_uart3_fileid = fd;
+
+	return 0;
+}
+
+int main()
+{
+    SerialPort_init();
 	
 	unsigned char rx_buffer[256];
 	unsigned char tx_buffer[256] = {'h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd'};
@@ -34,7 +45,7 @@ int main()
     while (index2 < 50) {
 		write(fd, (void*)tx_buffer, 16);
 				
-		for (index1 = 0; index1 < 100000000; index1++){};
+		sleep(100);
 
 		printf("%2d: ", index2++);
 		
@@ -49,3 +60,8 @@ int main()
 	close(fd);
 	return 0;
 }
+
+
+
+
+

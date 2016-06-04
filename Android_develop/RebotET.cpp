@@ -129,6 +129,8 @@ JNIEXPORT jstring JNICALL Java_com_rebotetso_utils_SerialPortUtil_read__ILjava_l
     return rx_data;    
 }
 
+
+
 #ifdef __cplusplus
 }
 #endif
