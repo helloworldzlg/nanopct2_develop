@@ -9,6 +9,8 @@
 #include <sys/ioctl.h>
 #include "i2c-dev.h"
 #include <linux/i2c.h>
+//#include "gpio.h"
+
 #include "com_robot_et_core_hardware_wakeup_WakeUp.h"
 
 
@@ -45,7 +47,7 @@ int gpio_export(unsigned int gpio)
 	int fd, len;
 	char buf[MAX_BUF];
  
-	fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
+	fd = open("/sys/class/gpio/export", O_WRONLY);
 	if (fd < 0) {
 		perror("gpio/export");
 		return fd;
@@ -66,7 +68,7 @@ int gpio_unexport(unsigned int gpio)
 	int fd, len;
 	char buf[MAX_BUF];
  
-	fd = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
+	fd = open("/sys/class/gpio/unexport", O_WRONLY);
 	if (fd < 0) {
 		perror("gpio/export");
 		return fd;
@@ -86,7 +88,7 @@ int gpio_set_dir(unsigned int gpio, unsigned int out_flag)
 	int fd, len;
 	char buf[MAX_BUF];
  
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR  "/gpio%d/direction", gpio);
+	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/direction", gpio);
  
 	fd = open(buf, O_WRONLY);
 	if (fd < 0) {
@@ -111,7 +113,7 @@ int gpio_set_value(unsigned int gpio, unsigned int value)
 	int fd, len;
 	char buf[MAX_BUF];
  
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
  
 	fd = open(buf, O_WRONLY);
 	if (fd < 0) {
@@ -137,7 +139,7 @@ int gpio_get_value(unsigned int gpio, unsigned int *value)
 	char buf[MAX_BUF];
 	char ch;
 
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
  
 	fd = open(buf, O_RDONLY);
 	if (fd < 0) {
@@ -167,7 +169,7 @@ int gpio_set_edge(unsigned int gpio, char *edge)
 	int fd, len;
 	char buf[MAX_BUF];
 
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/edge", gpio);
+	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/edge", gpio);
  
 	fd = open(buf, O_WRONLY);
 	if (fd < 0) {
@@ -189,7 +191,7 @@ int gpio_fd_open(unsigned int gpio)
 	int fd, len;
 	char buf[MAX_BUF];
 
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
  
 	fd = open(buf, O_RDONLY | O_NONBLOCK );
 	if (fd < 0) {
@@ -453,14 +455,14 @@ int i2c_init()
         printf("Open i2c-0 Port Error!\n");
         return I2C_FILE_OPEN_ERR;
     }
-
+#if 0
     /* 注册从机 */
     if (ioctl(i2c_fileId, I2C_SLAVE, xfm20512_ADDR) < 0)
     {
         printf("ioctl error\n");
         return REGISTER_SLAVE_ERR;
     }
-
+#endif
     /* 查询模块版本信息 */
     unsigned int version;
     
@@ -489,7 +491,7 @@ JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_wakeup_WakeUp_open
 
 	gpio_export(gpio);
 	gpio_set_dir(gpio, 0);
-	gpio_set_edge(gpio, "rising");
+	gpio_set_edge(gpio, (char*)"rising");
 	gpio_fileId = gpio_fd_open(gpio);
     if (gpio_fileId < 0)
     {
@@ -507,7 +509,7 @@ JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_wakeup_WakeUp_getWakeUpSt
 	int timeout, rc;
 	char buf[MAX_BUF];
 	int len;
-    
+#if 0
 	while (1) {
 		memset((void*)fdset, 0, sizeof(fdset));
 
@@ -517,7 +519,7 @@ JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_wakeup_WakeUp_getWakeUpSt
 		fdset[1].fd = wakeup_fd;
 		fdset[1].events = POLLPRI;
 
-		rc = poll(fdset, nfds, timeout);      
+		rc = poll(fdset, nfds, 1000);
 
 		if (rc < 0) {
 			//printf("\npoll() failed!\n");
@@ -525,7 +527,8 @@ JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_wakeup_WakeUp_getWakeUpSt
 		}
       
 		if (rc == 0) {
-			//printf(".");
+			printf(".");
+			return 0;
 		}
             
 		if (fdset[1].revents & POLLPRI) {
@@ -541,7 +544,28 @@ JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_wakeup_WakeUp_getWakeUpSt
 
 		fflush(stdout);    
     }
-
+#endif
+	memset(buf, '\0', sizeof(buf));
+#if 0
+	len = read(wakeup_fd, buf, 16);
+	if (strlen(buf) != 0)
+	{
+		xfm20512_get_degree(i2c_fileId, &wakeup_degree);
+		return 1;
+	}
+#else
+	unsigned int value = 0;
+	(void)gpio_get_value(68, &value);
+	if (value != 0)
+	{
+		xfm20512_get_degree(i2c_fileId, &wakeup_degree);
+		while (value != 0)
+		{
+			(void)gpio_get_value(68, &value);
+		}
+		return 1;
+	}
+#endif
     return WAKEUP_SUCCESS;
 }
 
