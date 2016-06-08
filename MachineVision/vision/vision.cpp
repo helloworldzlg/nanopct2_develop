@@ -1,11 +1,23 @@
+#include <string.h>
+#include <locale.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
+#include <android/log.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
-#include <signal.h>
-#include <time.h>
-#include <sys/time.h>
-#include <string.h>
+#include "com_robot_et_core_hardware_vision_Vision.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+//Java字符串的类和获取方法ID
+jclass    gStringClass;
+jmethodID gmidStringInit;
+jmethodID gmidStringGetBytes;
 
 #define ROBOT_VISION_DOT_NUM              (640)
 
@@ -16,18 +28,12 @@
 #define VISION_DOT_RIGHT_START            (2*ROBOT_VISION_DOT_NUM/3+1)
 #define VISION_DOT_RIGHT_END              (ROBOT_VISION_DOT_NUM)
 
-//#define UART_RX_BUFF_SIZE                 (ROBOT_VISION_DOT_NUM*10)
 #define UART_RX_BUFF_SIZE                 (4096)
-
 
 #define VISION_INFO_EFFECTIVE             (1)
 #define VISION_INFO_UNEFFECTIVE           (0)
 
-#define VISION_FRAME_START                ("START\n")
-#define VISION_FRAME_END                  ("END\n")
-
-
-int g_uart3_fileid;
+int g_uart4_fileid;
 char g_VisionInfo[UART_RX_BUFF_SIZE];
 unsigned int g_dot_distance[ROBOT_VISION_DOT_NUM];
 
@@ -37,117 +43,57 @@ unsigned int g_dot_distance[ROBOT_VISION_DOT_NUM];
 #define MOVE_RIGHT                        (4)
 #define MOVE_STOP                         (5)
 
-
-
-
-int SerialPort_init()
+void set_uart4_fileid(int fd)
 {
-	printf("\n********  UART3 TEST!!  ********\n");
-	int fd = -1;
-	fd = open("/dev/ttyAMA3", O_RDWR | O_NOCTTY | O_NDELAY);
-	if (fd == -1) {
-		perror("Open Serial Port Error!\n");
-		return -1;
-	}
-
-	struct termios options;
-	tcgetattr(fd, &options);
-
-	//115200, 8N1
-	options.c_cflag = B115200 | CS8 | CLOCAL | CREAD;
-	options.c_iflag = IGNPAR;
-	options.c_oflag = 0;
-	options.c_lflag = 0;
-	options.c_cc[VTIME]=0;
-	options.c_cc[VMIN]=1;
-	tcflush(fd, TCIFLUSH);
-
-	tcsetattr(fd, TCSANOW, &options);
-
-	g_uart3_fileid = fd;
-
-	return 0;
-}
-
-
-
-char* SearchStrFormStr(char* src, int src_len, char* search, int search_len)
-{
-    int i;
-    int ret;
-
-    for (i = 0; i < src_len; i++)
-    {
-        if (src[i] == search[0])
-        {
-            ret = memcmp(&src[i], &search[0], search_len);
-            if (0 == ret)
-            {
-                return &src[i];
-            }
-        }
-    }
-
-    if (i == src_len)
-    {
-        return NULL;
-    }
-}
-   
-void SerialPort_read()
-{    
-    int count;
-    int index = 0;
-    int size;
-    char* pstart = NULL;
-    int info_effective = VISION_INFO_UNEFFECTIVE;
-    unsigned char rx_buffer[256];
-    unsigned int timeout = 0xFFFFFFFF;
-    char start[] = "5a5a5a5a5a5a5a5a\n";
-    char end[]   = "a5a5a5a5a5a5a5a5\n";
-    
-    printf("***************************************\n");
-    
-    memset((void*)g_VisionInfo, '\0', sizeof(g_VisionInfo));
-
-    while ((!info_effective) && (timeout > 0))
-    {
-        count = 0;
-        memset((void*)rx_buffer, '\0', sizeof(rx_buffer));
-        
-        size = read(g_uart3_fileid, (void*)rx_buffer, sizeof(rx_buffer));
-        if (size > 0)
-        {
-            pstart = SearchStrFormStr(rx_buffer, size, start, strlen(start));
-            if (pstart)
-                continue;
-                        
-            memcpy((void*)g_VisionInfo, (void*)rx_buffer, size);
-            count += size;
-            
-            while (count < UART_RX_BUFF_SIZE)
-            {
-                size = read(g_uart3_fileid, (void*)rx_buffer, sizeof(rx_buffer));
-                if (size > 0) 
-                {
-                    memcpy((void*)g_VisionInfo + count, (void*)rx_buffer, size);
-                    count += size;
-                }
-            }
-
-            info_effective = VISION_INFO_EFFECTIVE;            
-        }
-        else
-        {
-            timeout--;
-        }
-    }
-    
-    printf("%s", g_VisionInfo);
-    
-    AnalysisVisionInfo();
-    
+    g_uart4_fileid = fd;
     return;
+}
+
+int get_uart4_fileid()
+{
+    return g_uart4_fileid;
+}
+
+char* get_vision_info_addr()
+{
+    return g_VisionInfo;
+}
+
+unsigned int* get_dot_distance_addr()
+{
+    return g_dot_distance;
+}
+
+/*************************************************
+ * 核心板与视觉板通信串口资源初始化
+*************************************************/
+static int SerialPort_init()
+{
+    int fd;
+    struct termios options;
+    
+    fd = open("/dev/ttyAMA4", O_RDWR | O_NOCTTY | O_NDELAY);
+    if (fd == -1) 
+    {
+        return fd;
+    }
+        
+    tcgetattr(fd, &options);
+
+    //115200, 8N1
+    options.c_cflag     = B115200 | CS8 | CLOCAL | CREAD;
+    options.c_iflag     = IGNPAR;
+    options.c_oflag     = 0;
+    options.c_lflag     = 0;
+    options.c_cc[VTIME] = 0;
+    options.c_cc[VMIN]  = 1;
+    tcflush(fd, TCIFLUSH);
+
+    tcsetattr(fd, TCSANOW, &options);
+
+    set_uart4_fileid(fd);
+
+    return 0;
 }
 
 /*************************************************
@@ -158,25 +104,29 @@ static void vision_info_read()
     int size;
     int count = 0;
     char rx_buffer[512];
-    void* pVisionInfo = (void*)g_VisionInfo;
+    void* pVisionInfo = (void*)get_vision_info_addr();
 
     while (count < UART_RX_BUFF_SIZE)
     {
-        size = read(g_uart3_fileid, (void*)rx_buffer, sizeof(rx_buffer));
+        size = read(get_uart4_fileid(), (void*)rx_buffer, sizeof(rx_buffer));
         if (size > 0)
         {
             if (size + count <= UART_RX_BUFF_SIZE)
             {
-                memcpy((void*)g_VisionInfo + count, (void*)rx_buffer, size);
+                memcpy((void*)pVisionInfo + count, (void*)rx_buffer, size);
                 count += size;
             }
             else
             {
-                memcpy((void*)g_VisionInfo + count, (void*)rx_buffer, UART_RX_BUFF_SIZE - count);
+                memcpy((void*)pVisionInfo + count, (void*)rx_buffer, UART_RX_BUFF_SIZE - count);
                 count = UART_RX_BUFF_SIZE;
             }
         }
     }
+
+    /* 替换最后的字符为" \n"  */
+    pVisionInfo[UART_RX_BUFF_SIZE-2] = ' ';
+    pVisionInfo[UART_RX_BUFF_SIZE-1] = '\n';
     
     return;
 }
@@ -224,14 +174,14 @@ static void analysis_vision_info(char* vision_info, const unsigned int size)
         g_dot_distance[dot_index] = atoi(temp);
 
         index += (unsigned int)p_tail - (unsigned int)p_head;
-        index += 1;        
+        index += 1;
     }
-    
+
     return;
 }
 
 /*************************************************
- * 视觉壁障算法
+ * 视觉避障算法
 *************************************************/
 int obstacle_avoidance_algorithm()
 {
@@ -239,7 +189,7 @@ int obstacle_avoidance_algorithm()
     int dot_index = 0;
     int max = g_dot_distance[0];
 
-    for (i = 1; i < sizeof(g_dot_distance)/sizeof(g_dot_distance[0]; i++))
+    for (i = 1; i < sizeof(g_dot_distance)/sizeof(g_dot_distance[0]); i++)
     {
         if (g_dot_distance[i] > max)
         {
@@ -251,7 +201,7 @@ int obstacle_avoidance_algorithm()
     if (0 == max)
     {
         return MOVE_STOP;
-    } 
+    }
     else if ((dot_index >= VISION_DOT_LEFT_START) && (dot_index <= VISION_DOT_LEFT_END))
     {
         return MOVE_LEFT;
@@ -268,36 +218,38 @@ int obstacle_avoidance_algorithm()
     return MOVE_FORWARD;
 }
 
-/*************************************************
- * 根据视觉扫描信息计算壁障方向
-*************************************************/
-int get_move_direction()
+JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_vision_Vision_init
+(JNIEnv *env, jclass cls)
 {
+    return SerialPort_init();
+}
+
+/*************************************************
+ * 根据视觉扫描信息计算避障方向
+*************************************************/
+JNIEXPORT jstring JNICALL Java_com_robot_et_core_hardware_vision_Vision_getMoveDirection
+(JNIEnv *env, jclass cls)
+{
+    char buf[10];
+    int dir;
+    
     vision_info_read();
-
-    analysis_vision_info();
-
-    return obstacle_avoidance_algorithm();
-}
-
-int main()
-{            
-    SerialPort_init();
-
-    struct itimerval value, ovalue;
-            
-    signal(SIGALRM, SerialPort_read);
     
-    value.it_value.tv_sec     = 5;
-    value.it_value.tv_usec    = 0;
-    value.it_interval.tv_sec  = 5;
-    value.it_interval.tv_usec = 0;
-    setitimer(ITIMER_REAL, &value, &ovalue);
+    analysis_vision_info(g_VisionInfo, sizeof(g_VisionInfo));
+
+    dir = obstacle_avoidance_algorithm();
+
+    memset((void*)buf, '\0', sizeof(buf));
+    buf[0] = dir + '0';
+    buf[1] = '\n';
     
-    for (;;);
-            
-    return 0;     
+    return env->NewStringUTF(buf);
 }
+  
 
 
 
+
+#ifdef __cplusplus
+}
+#endif

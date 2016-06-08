@@ -1,3 +1,4 @@
+#include <jni.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,18 +7,37 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <sys/ioctl.h>
-#include <linux/i2c-dev.h>
+#include "i2c-dev.h"
 #include <linux/i2c.h>
+//#include "gpio.h"
 
- /****************************************************************
+#include "com_robot_et_core_hardware_wakeup_WakeUp.h"
+
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/****************************************************************
  * Constants
  ****************************************************************/
  
-#define SYSFS_GPIO_DIR "/sys/class/gpio"
-#define POLL_TIMEOUT (3 * 1000) /* 3 seconds */
+#define SYSFS_GPIO_DIR                        "/sys/class/gpio"
+#define POLL_TIMEOUT                          (3 * 1000) /* 3 seconds */
 #define MAX_BUF 64
+#define GPIO_C4                               (68)
+
+#define WAKEUP_SUCCESS                        (0)
+#define WAKEUP_FAIL                           (-1)
+
+#define I2C_FILE_OPEN_ERR                     (-2)
+#define REGISTER_SLAVE_ERR                    (-3)
+#define SOUND_LOCALIZATION_OCCUR              (1)
 
 unsigned int i2c_fileId;
+int gpio_fileId;
+unsigned int wakeup_degree;
 
 /****************************************************************
  * gpio_export
@@ -27,7 +47,7 @@ int gpio_export(unsigned int gpio)
 	int fd, len;
 	char buf[MAX_BUF];
  
-	fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
+	fd = open("/sys/class/gpio/export", O_WRONLY);
 	if (fd < 0) {
 		perror("gpio/export");
 		return fd;
@@ -48,7 +68,7 @@ int gpio_unexport(unsigned int gpio)
 	int fd, len;
 	char buf[MAX_BUF];
  
-	fd = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
+	fd = open("/sys/class/gpio/unexport", O_WRONLY);
 	if (fd < 0) {
 		perror("gpio/export");
 		return fd;
@@ -68,7 +88,7 @@ int gpio_set_dir(unsigned int gpio, unsigned int out_flag)
 	int fd, len;
 	char buf[MAX_BUF];
  
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR  "/gpio%d/direction", gpio);
+	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/direction", gpio);
  
 	fd = open(buf, O_WRONLY);
 	if (fd < 0) {
@@ -93,7 +113,7 @@ int gpio_set_value(unsigned int gpio, unsigned int value)
 	int fd, len;
 	char buf[MAX_BUF];
  
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
  
 	fd = open(buf, O_WRONLY);
 	if (fd < 0) {
@@ -119,7 +139,7 @@ int gpio_get_value(unsigned int gpio, unsigned int *value)
 	char buf[MAX_BUF];
 	char ch;
 
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
  
 	fd = open(buf, O_RDONLY);
 	if (fd < 0) {
@@ -149,7 +169,7 @@ int gpio_set_edge(unsigned int gpio, char *edge)
 	int fd, len;
 	char buf[MAX_BUF];
 
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/edge", gpio);
+	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/edge", gpio);
  
 	fd = open(buf, O_WRONLY);
 	if (fd < 0) {
@@ -171,7 +191,7 @@ int gpio_fd_open(unsigned int gpio)
 	int fd, len;
 	char buf[MAX_BUF];
 
-	len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
  
 	fd = open(buf, O_RDONLY | O_NONBLOCK );
 	if (fd < 0) {
@@ -194,22 +214,22 @@ int gpio_fd_close(int fd)
 #define DELAY_MS(ms)            usleep((ms) * 1000)
 
 /*****************************************************************************
- å‡?æ•?å? : i2c_write_proc
- åŠŸèƒ½æè¿°  : I2Cå†™å¤„ç?
- è¾“å…¥å‚æ•°  : int fd              
+ �?�?�? : i2c_write_proc
+ 功能描述  : I2C写处�?
+ 输入参数  : int fd              
              unsigned char addr  
              unsigned char reg   
              unsigned char *val  
              unsigned char len   
- è¾“å‡ºå‚æ•°  : æ—?
- è¿?å›?å€? : static
- è°ƒç”¨å‡½æ•°  : 
- è¢«è°ƒå‡½æ•°  : 
+ 输出参数  : �?
+ �?�?�? : static
+ 调用函数  : 
+ 被调函数  : 
  
- ä¿®æ”¹åŽ†å²      :
-  1.æ—?   æœ?  : 2016å¹?æœ?4æ—?
-    ä½?   è€?  : zlg
-    ä¿®æ”¹å†…å®¹   : æ–°ç”Ÿæˆå‡½æ•?
+ 修改历史      :
+  1.�?   �?  : 2016�?�?4�?
+    �?   �?  : zlg
+    修改内容   : 新生成函�?
 
 *****************************************************************************/
 static int i2c_write_proc
@@ -250,22 +270,22 @@ static int i2c_write_proc
 }
 
 /*****************************************************************************
- å‡?æ•?å? : i2c_read_proc
- åŠŸèƒ½æè¿°  : I2Cè¯»å¤„ç?
- è¾“å…¥å‚æ•°  : int fd              
+ �?�?�? : i2c_read_proc
+ 功能描述  : I2C读处�?
+ 输入参数  : int fd              
              unsigned char addr  
              unsigned char reg   
              unsigned char *val  
              unsigned char len   
- è¾“å‡ºå‚æ•°  : æ—?
- è¿?å›?å€? : static
- è°ƒç”¨å‡½æ•°  : 
- è¢«è°ƒå‡½æ•°  : 
+ 输出参数  : �?
+ �?�?�? : static
+ 调用函数  : 
+ 被调函数  : 
  
- ä¿®æ”¹åŽ†å²      :
-  1.æ—?   æœ?  : 2016å¹?æœ?4æ—?
-    ä½?   è€?  : zlg
-    ä¿®æ”¹å†…å®¹   : æ–°ç”Ÿæˆå‡½æ•?
+ 修改历史      :
+  1.�?   �?  : 2016�?�?4�?
+    �?   �?  : zlg
+    修改内容   : 新生成函�?
 
 *****************************************************************************/
 static int i2c_read_proc
@@ -305,19 +325,19 @@ static int i2c_read_proc
 }
 
 /*****************************************************************************
- å‡?æ•?å? : xfm20512_get_version
- åŠŸèƒ½æè¿°  : èŽ·å–ç‰ˆæœ¬ä¿¡æ¯
- è¾“å…¥å‚æ•°  : int fd                 
+ �?�?�? : xfm20512_get_version
+ 功能描述  : 获取版本信息
+ 输入参数  : int fd                 
              unsigned int *version  
- è¾“å‡ºå‚æ•°  : æ—?
- è¿?å›?å€? : 
- è°ƒç”¨å‡½æ•°  : 
- è¢«è°ƒå‡½æ•°  : 
+ 输出参数  : �?
+ �?�?�? : 
+ 调用函数  : 
+ 被调函数  : 
  
- ä¿®æ”¹åŽ†å²      :
-  1.æ—?   æœ?  : 2016å¹?æœ?4æ—?
-    ä½?   è€?  : zlg
-    ä¿®æ”¹å†…å®¹   : æ–°ç”Ÿæˆå‡½æ•?
+ 修改历史      :
+  1.�?   �?  : 2016�?�?4�?
+    �?   �?  : zlg
+    修改内容   : 新生成函�?
 
 *****************************************************************************/
 int xfm20512_get_version(int fd, unsigned int *version)
@@ -343,19 +363,19 @@ int xfm20512_get_version(int fd, unsigned int *version)
 }
 
 /*****************************************************************************
- å‡?æ•?å? : xfm20512_get_degree
- åŠŸèƒ½æè¿°  : èŽ·å–è§’åº¦ä¿¡æ¯
- è¾“å…¥å‚æ•°  : int fd                
+ �?�?�? : xfm20512_get_degree
+ 功能描述  : 获取角度信息
+ 输入参数  : int fd                
              unsigned int *degree  
- è¾“å‡ºå‚æ•°  : æ—?
- è¿?å›?å€? : 
- è°ƒç”¨å‡½æ•°  : 
- è¢«è°ƒå‡½æ•°  : 
+ 输出参数  : �?
+ �?�?�? : 
+ 调用函数  : 
+ 被调函数  : 
  
- ä¿®æ”¹åŽ†å²      :
-  1.æ—?   æœ?  : 2016å¹?æœ?4æ—?
-    ä½?   è€?  : zlg
-    ä¿®æ”¹å†…å®¹   : æ–°ç”Ÿæˆå‡½æ•?
+ 修改历史      :
+  1.�?   �?  : 2016�?�?4�?
+    �?   �?  : zlg
+    修改内容   : 新生成函�?
 
 *****************************************************************************/
 int xfm20512_get_degree(int fd, unsigned int *degree)
@@ -428,88 +448,141 @@ int i2c_init()
     int ret;
     int write_count = 0;
 
+    /* 打开master侧的I2C-0接口 */
     i2c_fileId = open("/dev/i2c-0", O_RDWR);
-    if (i2c_fileId == -1) 
+    if (i2c_fileId < 0) 
     {
-        perror("Open i2c-0 Port Error!\n");
-        return -1;
+        printf("Open i2c-0 Port Error!\n");
+        return I2C_FILE_OPEN_ERR;
     }
-
+#if 0
+    /* 注册从机 */
     if (ioctl(i2c_fileId, I2C_SLAVE, xfm20512_ADDR) < 0)
     {
-        perror("ioctl error\n");
-        return -1;
+        printf("ioctl error\n");
+        return REGISTER_SLAVE_ERR;
     }
-
-    unsigned int version;    
+#endif
+    /* 查询模块版本信息 */
+    unsigned int version;
+    
     if (!xfm20512_get_version(i2c_fileId, &version))
     {
         printf("version = %d\n", version);
     }    
-    
-    return 0;
+
+    return WAKEUP_SUCCESS;
 }
 
-/****************************************************************
- * Main
- ****************************************************************/
-int main(int argc, char **argv, char **envp)
+JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_wakeup_WakeUp_open
+(JNIEnv *env, jobject obj, jstring path, jint oflag)
 {
-	struct pollfd fdset[2];
-	int nfds = 2;
-	int gpio_fd, timeout, rc;
-	char buf[MAX_BUF];
-	unsigned int gpio;
-	int degree;
-	int len;	
-    
-    /* i2c init */
-    i2c_init();
+	int gpio;
+	int ret;
 
-	gpio = 68;
+    /* i2c init */
+	ret = i2c_init();
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	gpio = GPIO_C4;
 
 	gpio_export(gpio);
 	gpio_set_dir(gpio, 0);
-	gpio_set_edge(gpio, "rising");
-	gpio_fd = gpio_fd_open(gpio);
+	gpio_set_edge(gpio, (char*)"rising");
+	gpio_fileId = gpio_fd_open(gpio);
+    if (gpio_fileId < 0)
+    {
+        return WAKEUP_FAIL;        
+    }
 
-	timeout = POLL_TIMEOUT;
- 
+    return gpio_fileId;
+}
+
+JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_wakeup_WakeUp_getWakeUpState
+(JNIEnv *env, jobject obj, jint wakeup_fd)
+{
+    struct pollfd fdset[2];
+	int nfds = 2;
+	int timeout, rc;
+	char buf[MAX_BUF];
+	int len;
+#if 0
 	while (1) {
 		memset((void*)fdset, 0, sizeof(fdset));
 
 		fdset[0].fd = STDIN_FILENO;
 		fdset[0].events = POLLIN;
       
-		fdset[1].fd = gpio_fd;
+		fdset[1].fd = wakeup_fd;
 		fdset[1].events = POLLPRI;
 
-		rc = poll(fdset, nfds, timeout);      
+		rc = poll(fdset, nfds, 1000);
 
 		if (rc < 0) {
-			printf("\npoll() failed!\n");
+			//printf("\npoll() failed!\n");
 			return -1;
 		}
       
 		if (rc == 0) {
 			printf(".");
+			return 0;
 		}
             
 		if (fdset[1].revents & POLLPRI) {
 			len = read(fdset[1].fd, buf, 1);
-			xfm20512_get_degree(i2c_fileId, &degree);
-			printf("len = %d, degree = %d\n", len, degree);
-			printf("\npoll() GPIO %d interrupt occurred degree = %d\n", gpio, degree);
+			xfm20512_get_degree(i2c_fileId, &wakeup_degree);
+            
+            return SOUND_LOCALIZATION_OCCUR;
 		}
 
 		if (fdset[0].revents & POLLIN) {
 			(void)read(fdset[0].fd, buf, 1);
-			printf("\npoll() stdin read 0x%2.2X\n", (unsigned int) buf[0]);
 		}
 
-		fflush(stdout);
+		fflush(stdout);    
+    }
+#endif
+	memset(buf, '\0', sizeof(buf));
+#if 0
+	len = read(wakeup_fd, buf, 16);
+	if (strlen(buf) != 0)
+	{
+		xfm20512_get_degree(i2c_fileId, &wakeup_degree);
+		return 1;
 	}
-
-	gpio_fd_close(gpio_fd);
-	return 0;
+#else
+	unsigned int value = 0;
+	(void)gpio_get_value(68, &value);
+	if (value != 0)
+	{
+		xfm20512_get_degree(i2c_fileId, &wakeup_degree);
+		while (value != 0)
+		{
+			(void)gpio_get_value(68, &value);
+		}
+		return 1;
+	}
+#endif
+    return WAKEUP_SUCCESS;
 }
+
+JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_wakeup_WakeUp_getWakeUpDegree
+(JNIEnv *env, jobject obj)
+{
+    return wakeup_degree;
+}
+
+JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_wakeup_WakeUp_close
+(JNIEnv *env, jobject obj, jint gpio_fileId)
+{
+    close(gpio_fileId);
+    
+    return WAKEUP_SUCCESS;
+}
+
+#ifdef __cplusplus
+}
+#endif
