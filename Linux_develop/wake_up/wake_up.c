@@ -434,7 +434,7 @@ int i2c_init()
         perror("Open i2c-0 Port Error!\n");
         return -1;
     }
-
+#if 0
     if (ioctl(i2c_fileId, I2C_SLAVE, xfm20512_ADDR) < 0)
     {
         perror("ioctl error\n");
@@ -446,70 +446,36 @@ int i2c_init()
     {
         printf("version = %d\n", version);
     }    
-    
+#endif    
     return 0;
 }
 
 /****************************************************************
  * Main
  ****************************************************************/
-int main(int argc, char **argv, char **envp)
+int main()
 {
-	struct pollfd fdset[2];
-	int nfds = 2;
-	int gpio_fd, timeout, rc;
-	char buf[MAX_BUF];
-	unsigned int gpio;
-	int degree;
-	int len;	
+    int gpio_fd;
+	unsigned int gpio = 68;
+	   
+    //i2c_init();
     
-    /* i2c init */
-    i2c_init();
-
-	gpio = 68;
+    system("chmod 777 /sys/class/gpio");
+#if 0    
+    system("chmod 777 /sys/class/gpio/export");
+    system("echo 68 > export");
+    system("chmod 777 /sys/class/gpio/gpio68/direction");
+    system("chmod 777 /sys/class/gpio/gpio68/edge");
+    system("chmod 777 /sys/class/gpio/gpio68/value");
 
 	gpio_export(gpio);
 	gpio_set_dir(gpio, 0);
 	gpio_set_edge(gpio, "rising");
+	
 	gpio_fd = gpio_fd_open(gpio);
-
-	timeout = POLL_TIMEOUT;
- 
-	while (1) {
-		memset((void*)fdset, 0, sizeof(fdset));
-
-		fdset[0].fd = STDIN_FILENO;
-		fdset[0].events = POLLIN;
-      
-		fdset[1].fd = gpio_fd;
-		fdset[1].events = POLLPRI;
-
-		rc = poll(fdset, nfds, timeout);      
-
-		if (rc < 0) {
-			printf("\npoll() failed!\n");
-			return -1;
-		}
-      
-		if (rc == 0) {
-			printf(".");
-		}
-            
-		if (fdset[1].revents & POLLPRI) {
-			len = read(fdset[1].fd, buf, 1);
-			xfm20512_get_degree(i2c_fileId, &degree);
-			printf("len = %d, degree = %d\n", len, degree);
-			printf("\npoll() GPIO %d interrupt occurred degree = %d\n", gpio, degree);
-		}
-
-		if (fdset[0].revents & POLLIN) {
-			(void)read(fdset[0].fd, buf, 1);
-			printf("\npoll() stdin read 0x%2.2X\n", (unsigned int) buf[0]);
-		}
-
-		fflush(stdout);
-	}
-
 	gpio_fd_close(gpio_fd);
+#endif
+    printf("main finished!");
+    	
 	return 0;
 }
