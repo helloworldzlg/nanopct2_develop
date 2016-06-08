@@ -460,7 +460,7 @@ int main()
 	   
     //i2c_init();
     
-    system("chmod 777 /sys/class/gpio");
+    //system("chmod 777 /sys/class/gpio");
 #if 0    
     system("chmod 777 /sys/class/gpio/export");
     system("echo 68 > export");
