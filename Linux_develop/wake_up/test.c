@@ -3,8 +3,9 @@
 
 int main()
 {
-    system("su fa");
+    system("su-");
     system("chmod 777 wake_up");
+    system("ls -l");
     
     printf("main finished\n");
     
