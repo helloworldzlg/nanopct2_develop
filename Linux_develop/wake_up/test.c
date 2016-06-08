@@ -3,8 +3,7 @@
 
 int main()
 {
-    system("su-");
-    system("chmod 777 wake_up");
+    system("sudo chmod 777 wake_up");
     system("ls -l");
     
     printf("main finished\n");
