@@ -53,7 +53,7 @@ int main(void)
         exit(4);  
     }  
   
-    if(vinfo.bits_per_pixel == 16)  
+    if (vinfo.bits_per_pixel == 32)  
     {  
         printf("16 bpp framebuffer\n");  
   
@@ -61,7 +61,7 @@ int main(void)
         printf("Red Screen\n");  
         for(y = 0; y < vinfo.yres/3;  y++)  
         {  
-            for(x = 0; x < vinfo.xres ; x++)  
+            for(x = 0; x < vinfo.xres/2; x++)  
             {  
                 *(fbp565 + y * vinfo.xres + x) = RED_COLOR565;  
             }  
@@ -71,7 +71,7 @@ int main(void)
         printf("Green Screen\n");  
         for(y = vinfo.yres/3; y < (vinfo.yres*2)/3; y++)  
         {  
-            for(x = 0; x < vinfo.xres; x++)  
+            for(x = 0; x < vinfo.xres/2; x++)  
             {  
                 *(fbp565 + y * vinfo.xres + x) =GREEN_COLOR565;  
             }  
@@ -81,13 +81,12 @@ int main(void)
         printf("Blue Screen\n");  
         for(y = (vinfo.yres*2)/3; y < vinfo.yres; y++)  
         {  
-            for(x = 0; x < vinfo.xres; x++)  
+            for(x = 0; x < vinfo.xres/2; x++)  
             {  
                 *(fbp565 + y * vinfo.xres + x) = BLUE_COLOR565;  
             }  
         }  
-    }  
-      
+    }        
     else  
     {  
         printf("warnning: bpp is not 16\n");  
