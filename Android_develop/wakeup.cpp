@@ -44,20 +44,20 @@ unsigned int wakeup_degree;
  ****************************************************************/
 int gpio_export(unsigned int gpio)
 {
-	int fd, len;
-	char buf[MAX_BUF];
+    int fd, len;
+    char buf[MAX_BUF];
  
-	fd = open("/sys/class/gpio/export", O_WRONLY);
-	if (fd < 0) {
-		perror("gpio/export");
-		return fd;
-	}
+    fd = open("/sys/class/gpio/export", O_WRONLY);
+    if (fd < 0) {
+        perror("gpio/export");
+        return fd;
+    }
  
-	len = snprintf(buf, sizeof(buf), "%d", gpio);
-	write(fd, buf, len);
-	close(fd);
+    len = snprintf(buf, sizeof(buf), "%d", gpio);
+    write(fd, buf, len);
+    close(fd);
  
-	return 0;
+    return 0;
 }
 
 /****************************************************************
@@ -65,19 +65,19 @@ int gpio_export(unsigned int gpio)
  ****************************************************************/
 int gpio_unexport(unsigned int gpio)
 {
-	int fd, len;
-	char buf[MAX_BUF];
+    int fd, len;
+    char buf[MAX_BUF];
  
-	fd = open("/sys/class/gpio/unexport", O_WRONLY);
-	if (fd < 0) {
-		perror("gpio/export");
-		return fd;
-	}
+    fd = open("/sys/class/gpio/unexport", O_WRONLY);
+    if (fd < 0) {
+        perror("gpio/export");
+        return fd;
+    }
  
-	len = snprintf(buf, sizeof(buf), "%d", gpio);
-	write(fd, buf, len);
-	close(fd);
-	return 0;
+    len = snprintf(buf, sizeof(buf), "%d", gpio);
+    write(fd, buf, len);
+    close(fd);
+    return 0;
 }
 
 /****************************************************************
@@ -85,24 +85,24 @@ int gpio_unexport(unsigned int gpio)
  ****************************************************************/
 int gpio_set_dir(unsigned int gpio, unsigned int out_flag)
 {
-	int fd, len;
-	char buf[MAX_BUF];
+    int fd, len;
+    char buf[MAX_BUF];
  
-	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/direction", gpio);
+    len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/direction", gpio);
  
-	fd = open(buf, O_WRONLY);
-	if (fd < 0) {
-		perror("gpio/direction");
-		return fd;
-	}
+    fd = open(buf, O_WRONLY);
+    if (fd < 0) {
+        perror("gpio/direction");
+        return fd;
+    }
  
-	if (out_flag)
-		write(fd, "out", 4);
-	else
-		write(fd, "in", 3);
+    if (out_flag)
+        write(fd, "out", 4);
+    else
+        write(fd, "in", 3);
  
-	close(fd);
-	return 0;
+    close(fd);
+    return 0;
 }
 
 /****************************************************************
@@ -110,24 +110,24 @@ int gpio_set_dir(unsigned int gpio, unsigned int out_flag)
  ****************************************************************/
 int gpio_set_value(unsigned int gpio, unsigned int value)
 {
-	int fd, len;
-	char buf[MAX_BUF];
+    int fd, len;
+    char buf[MAX_BUF];
  
-	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
+    len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
  
-	fd = open(buf, O_WRONLY);
-	if (fd < 0) {
-		perror("gpio/set-value");
-		return fd;
-	}
+    fd = open(buf, O_WRONLY);
+    if (fd < 0) {
+        perror("gpio/set-value");
+        return fd;
+    }
  
-	if (value)
-		write(fd, "1", 2);
-	else
-		write(fd, "0", 2);
+    if (value)
+        write(fd, "1", 2);
+    else
+        write(fd, "0", 2);
  
-	close(fd);
-	return 0;
+    close(fd);
+    return 0;
 }
 
 /****************************************************************
@@ -135,28 +135,28 @@ int gpio_set_value(unsigned int gpio, unsigned int value)
  ****************************************************************/
 int gpio_get_value(unsigned int gpio, unsigned int *value)
 {
-	int fd, len;
-	char buf[MAX_BUF];
-	char ch;
+    int fd, len;
+    char buf[MAX_BUF];
+    char ch;
 
-	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
+    len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
  
-	fd = open(buf, O_RDONLY);
-	if (fd < 0) {
-		perror("gpio/get-value");
-		return fd;
-	}
+    fd = open(buf, O_RDONLY);
+    if (fd < 0) {
+        perror("gpio/get-value");
+        return fd;
+    }
  
-	read(fd, &ch, 1);
+    read(fd, &ch, 1);
 
-	if (ch != '0') {
-		*value = 1;
-	} else {
-		*value = 0;
-	}
+    if (ch != '0') {
+        *value = 1;
+    } else {
+        *value = 0;
+    }
  
-	close(fd);
-	return 0;
+    close(fd);
+    return 0;
 }
 
 
@@ -166,20 +166,20 @@ int gpio_get_value(unsigned int gpio, unsigned int *value)
 
 int gpio_set_edge(unsigned int gpio, char *edge)
 {
-	int fd, len;
-	char buf[MAX_BUF];
+    int fd, len;
+    char buf[MAX_BUF];
 
-	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/edge", gpio);
+    len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/edge", gpio);
  
-	fd = open(buf, O_WRONLY);
-	if (fd < 0) {
-		perror("gpio/set-edge");
-		return fd;
-	}
+    fd = open(buf, O_WRONLY);
+    if (fd < 0) {
+        perror("gpio/set-edge");
+        return fd;
+    }
  
-	write(fd, edge, strlen(edge) + 1); 
-	close(fd);
-	return 0;
+    write(fd, edge, strlen(edge) + 1); 
+    close(fd);
+    return 0;
 }
 
 /****************************************************************
@@ -188,16 +188,16 @@ int gpio_set_edge(unsigned int gpio, char *edge)
 
 int gpio_fd_open(unsigned int gpio)
 {
-	int fd, len;
-	char buf[MAX_BUF];
+    int fd, len;
+    char buf[MAX_BUF];
 
-	len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
+    len = snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
  
-	fd = open(buf, O_RDONLY | O_NONBLOCK );
-	if (fd < 0) {
-		perror("gpio/fd_open");
-	}
-	return fd;
+    fd = open(buf, O_RDONLY | O_NONBLOCK );
+    if (fd < 0) {
+        perror("gpio/fd_open");
+    }
+    return fd;
 }
 
 /****************************************************************
@@ -206,7 +206,7 @@ int gpio_fd_open(unsigned int gpio)
 
 int gpio_fd_close(int fd)
 {
-	return close(fd);
+    return close(fd);
 }
 
 #define xfm20512_ADDR           (0x47)
@@ -214,22 +214,22 @@ int gpio_fd_close(int fd)
 #define DELAY_MS(ms)            usleep((ms) * 1000)
 
 /*****************************************************************************
- ï¿½?ï¿½?ï¿½? : i2c_write_proc
- åŠŸèƒ½æè¿°  : I2Cå†™å¤„ï¿½?
- è¾“å…¥å‚æ•°  : int fd              
+ º¯ Êý Ãû  : i2c_write_proc
+ ¹¦ÄÜÃèÊö  : i2c_write_proc
+ ÊäÈë²ÎÊý  : int fd              
              unsigned char addr  
              unsigned char reg   
              unsigned char *val  
              unsigned char len   
- è¾“å‡ºå‚æ•°  : ï¿½?
- ï¿½?ï¿½?ï¿½? : static
- è°ƒç”¨å‡½æ•°  : 
- è¢«è°ƒå‡½æ•°  : 
+ Êä³ö²ÎÊý  : ÎÞ
+ ·µ »Ø Öµ  : static
+ µ÷ÓÃº¯Êý  : 
+ ±»µ÷º¯Êý  : 
  
- ä¿®æ”¹åŽ†å²      :
-  1.ï¿½?   ï¿½?  : 2016ï¿½?ï¿½?4ï¿½?
-    ï¿½?   ï¿½?  : zlg
-    ä¿®æ”¹å†…å®¹   : æ–°ç”Ÿæˆå‡½ï¿½?
+ ÐÞ¸ÄÀúÊ·      :
+  1.ÈÕ    ÆÚ   : 2016Äê6ÔÂ16ÈÕ
+    ×÷    Õß   : zlg
+    ÐÞ¸ÄÄÚÈÝ   : ÐÂÉú³Éº¯Êý
 
 *****************************************************************************/
 static int i2c_write_proc
@@ -270,22 +270,22 @@ static int i2c_write_proc
 }
 
 /*****************************************************************************
- ï¿½?ï¿½?ï¿½? : i2c_read_proc
- åŠŸèƒ½æè¿°  : I2Cè¯»å¤„ï¿½?
- è¾“å…¥å‚æ•°  : int fd              
+ º¯ Êý Ãû  : i2c_read_proc
+ ¹¦ÄÜÃèÊö  : i2c_read_proc
+ ÊäÈë²ÎÊý  : int fd              
              unsigned char addr  
              unsigned char reg   
              unsigned char *val  
              unsigned char len   
- è¾“å‡ºå‚æ•°  : ï¿½?
- ï¿½?ï¿½?ï¿½? : static
- è°ƒç”¨å‡½æ•°  : 
- è¢«è°ƒå‡½æ•°  : 
+ Êä³ö²ÎÊý  : ÎÞ
+ ·µ »Ø Öµ  : static
+ µ÷ÓÃº¯Êý  : 
+ ±»µ÷º¯Êý  : 
  
- ä¿®æ”¹åŽ†å²      :
-  1.ï¿½?   ï¿½?  : 2016ï¿½?ï¿½?4ï¿½?
-    ï¿½?   ï¿½?  : zlg
-    ä¿®æ”¹å†…å®¹   : æ–°ç”Ÿæˆå‡½ï¿½?
+ ÐÞ¸ÄÀúÊ·      :
+  1.ÈÕ    ÆÚ   : 2016Äê6ÔÂ16ÈÕ
+    ×÷    Õß   : zlg
+    ÐÞ¸ÄÄÚÈÝ   : ÐÂÉú³Éº¯Êý
 
 *****************************************************************************/
 static int i2c_read_proc
@@ -325,19 +325,19 @@ static int i2c_read_proc
 }
 
 /*****************************************************************************
- ï¿½?ï¿½?ï¿½? : xfm20512_get_version
- åŠŸèƒ½æè¿°  : èŽ·å–ç‰ˆæœ¬ä¿¡æ¯
- è¾“å…¥å‚æ•°  : int fd                 
+ º¯ Êý Ãû  : xfm20512_get_version
+ ¹¦ÄÜÃèÊö  : xfm20512_get_version
+ ÊäÈë²ÎÊý  : int fd                 
              unsigned int *version  
- è¾“å‡ºå‚æ•°  : ï¿½?
- ï¿½?ï¿½?ï¿½? : 
- è°ƒç”¨å‡½æ•°  : 
- è¢«è°ƒå‡½æ•°  : 
+ Êä³ö²ÎÊý  : ÎÞ
+ ·µ »Ø Öµ  : 
+ µ÷ÓÃº¯Êý  : 
+ ±»µ÷º¯Êý  : 
  
- ä¿®æ”¹åŽ†å²      :
-  1.ï¿½?   ï¿½?  : 2016ï¿½?ï¿½?4ï¿½?
-    ï¿½?   ï¿½?  : zlg
-    ä¿®æ”¹å†…å®¹   : æ–°ç”Ÿæˆå‡½ï¿½?
+ ÐÞ¸ÄÀúÊ·      :
+  1.ÈÕ    ÆÚ   : 2016Äê6ÔÂ16ÈÕ
+    ×÷    Õß   : zlg
+    ÐÞ¸ÄÄÚÈÝ   : ÐÂÉú³Éº¯Êý
 
 *****************************************************************************/
 int xfm20512_get_version(int fd, unsigned int *version)
@@ -363,19 +363,19 @@ int xfm20512_get_version(int fd, unsigned int *version)
 }
 
 /*****************************************************************************
- ï¿½?ï¿½?ï¿½? : xfm20512_get_degree
- åŠŸèƒ½æè¿°  : èŽ·å–è§’åº¦ä¿¡æ¯
- è¾“å…¥å‚æ•°  : int fd                
+ º¯ Êý Ãû  : xfm20512_get_degree
+ ¹¦ÄÜÃèÊö  : xfm20512_get_degree
+ ÊäÈë²ÎÊý  : int fd                
              unsigned int *degree  
- è¾“å‡ºå‚æ•°  : ï¿½?
- ï¿½?ï¿½?ï¿½? : 
- è°ƒç”¨å‡½æ•°  : 
- è¢«è°ƒå‡½æ•°  : 
+ Êä³ö²ÎÊý  : ÎÞ
+ ·µ »Ø Öµ  : 
+ µ÷ÓÃº¯Êý  : 
+ ±»µ÷º¯Êý  : 
  
- ä¿®æ”¹åŽ†å²      :
-  1.ï¿½?   ï¿½?  : 2016ï¿½?ï¿½?4ï¿½?
-    ï¿½?   ï¿½?  : zlg
-    ä¿®æ”¹å†…å®¹   : æ–°ç”Ÿæˆå‡½ï¿½?
+ ÐÞ¸ÄÀúÊ·      :
+  1.ÈÕ    ÆÚ   : 2016Äê6ÔÂ16ÈÕ
+    ×÷    Õß   : zlg
+    ÐÞ¸ÄÄÚÈÝ   : ÐÂÉú³Éº¯Êý
 
 *****************************************************************************/
 int xfm20512_get_degree(int fd, unsigned int *degree)
@@ -439,6 +439,50 @@ int xfm20512_exit_wakeup(int fd, unsigned int beam)
     return 0;
 }
 
+/*****************************************************************************
+ º¯ Êý Ãû  : xfm20512_set_gain_direction
+ ¹¦ÄÜÃèÊö  : ÉèÖÃÊ°Òô²¨ÊøµÄ·½Ïò
+ ÊäÈë²ÎÊý  : int fd                  
+             unsigned int direction  
+ Êä³ö²ÎÊý  : ÎÞ
+ ·µ »Ø Öµ  : 
+ µ÷ÓÃº¯Êý  : 
+ ±»µ÷º¯Êý  : 
+ 
+ ÐÞ¸ÄÀúÊ·      :
+  1.ÈÕ    ÆÚ   : 2016Äê6ÔÂ16ÈÕ
+    ×÷    Õß   : zlg
+    ÐÞ¸ÄÄÚÈÝ   : ÐÂÉú³Éº¯Êý
+
+*****************************************************************************/
+int xfm20512_set_gain_direction(unsigned int direction)
+{
+    if (direction > 3)
+    {
+        return -1;
+    }
+    
+    unsigned int data = 0x00001200 | ((direction & 0x3) << 16);
+    
+    /* 1. ÉèÖÃÊ°Òô²¨Êø */
+    if (i2c_write_proc(i2c_fileId, xfm20512_ADDR, 0x00, (unsigned char *)&data, sizeof(unsigned int)))
+        return -1;
+        
+    DELAY_MS(1);    
+
+    /* 2. ²éÑ¯ÃüÁî×´Ì¬ */
+    do 
+    {
+        if (i2c_read_proc(i2c_fileId, xfm20512_ADDR, 0x00, (unsigned char *)&data, sizeof(unsigned int)))
+            return -1;
+            
+        DELAY_MS(1); 
+        
+    } while (0x00030001 != data);
+    
+    return 0;
+}
+
 /****************************************************************
  * i2c_init
  ****************************************************************/
@@ -448,7 +492,7 @@ int i2c_init()
     int ret;
     int write_count = 0;
 
-    /* æ‰“å¼€masterä¾§çš„I2C-0æŽ¥å£ */
+    /* ´ò¿ªI2CÉè±¸ */
     i2c_fileId = open("/dev/i2c-0", O_RDWR);
     if (i2c_fileId < 0) 
     {
@@ -463,7 +507,7 @@ int i2c_init()
         return REGISTER_SLAVE_ERR;
     }
 #endif
-    /* æŸ¥è¯¢æ¨¡å—ç‰ˆæœ¬ä¿¡æ¯ */
+    /* »ñÈ¡°æ±¾ÐÅÏ¢ */
     unsigned int version;
     
     if (!xfm20512_get_version(i2c_fileId, &version))
@@ -477,22 +521,31 @@ int i2c_init()
 JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_wakeup_WakeUp_open
 (JNIEnv *env, jobject obj, jstring path, jint oflag)
 {
-	int gpio;
-	int ret;
+    int gpio;
+    int ret;
 
     /* i2c init */
-	ret = i2c_init();
-	if (ret < 0)
-	{
-		return ret;
-	}
+    ret = i2c_init();
+    if (ret < 0)
+    {
+        return ret;
+    }
 
-	gpio = GPIO_C4;
+    system("setenforce 0");
+    system("chmod 777 /sys/class/gpio");
+    system("chmod 777 /sys/class/gpio/export");
+    system("echo 68 > /sys/class/gpio/export");
+    system("chmod 777 /sys/class/gpio/gpio68");
+    system("chmod 777 /sys/class/gpio/gpio68/direction");
+    system("chmod 777 /sys/class/gpio/gpio68/edge");
+    system("chmod 777 /sys/class/gpio/gpio68/value");
 
-	gpio_export(gpio);
-	gpio_set_dir(gpio, 0);
-	gpio_set_edge(gpio, (char*)"rising");
-	gpio_fileId = gpio_fd_open(gpio);
+    gpio = GPIO_C4;
+
+    gpio_export(gpio);
+    gpio_set_dir(gpio, 0);
+    gpio_set_edge(gpio, (char*)"rising");
+    gpio_fileId = gpio_fd_open(gpio);
     if (gpio_fileId < 0)
     {
         return WAKEUP_FAIL;        
@@ -505,67 +558,33 @@ JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_wakeup_WakeUp_getWakeUpSt
 (JNIEnv *env, jobject obj, jint wakeup_fd)
 {
     struct pollfd fdset[2];
-	int nfds = 2;
-	int timeout, rc;
-	char buf[MAX_BUF];
-	int len;
+    int nfds = 2;
+    int timeout, rc;
+    char buf[MAX_BUF];
+    int len;
+
+    memset(buf, '\0', sizeof(buf));
 #if 0
-	while (1) {
-		memset((void*)fdset, 0, sizeof(fdset));
-
-		fdset[0].fd = STDIN_FILENO;
-		fdset[0].events = POLLIN;
-      
-		fdset[1].fd = wakeup_fd;
-		fdset[1].events = POLLPRI;
-
-		rc = poll(fdset, nfds, 1000);
-
-		if (rc < 0) {
-			//printf("\npoll() failed!\n");
-			return -1;
-		}
-      
-		if (rc == 0) {
-			printf(".");
-			return 0;
-		}
-            
-		if (fdset[1].revents & POLLPRI) {
-			len = read(fdset[1].fd, buf, 1);
-			xfm20512_get_degree(i2c_fileId, &wakeup_degree);
-            
-            return SOUND_LOCALIZATION_OCCUR;
-		}
-
-		if (fdset[0].revents & POLLIN) {
-			(void)read(fdset[0].fd, buf, 1);
-		}
-
-		fflush(stdout);    
+    len = read(wakeup_fd, buf, 16);
+    if (strlen(buf) != 0)
+    {
+        xfm20512_get_degree(i2c_fileId, &wakeup_degree);
+        return 1;
+    }
+#else
+    unsigned int value = 0;
+    (void)gpio_get_value(68, &value);
+    if (value != 0)
+    {
+        xfm20512_get_degree(i2c_fileId, &wakeup_degree);
+        while (value != 0)
+        {
+            (void)gpio_get_value(68, &value);
+        }
+        return 1;
     }
 #endif
-	memset(buf, '\0', sizeof(buf));
-#if 0
-	len = read(wakeup_fd, buf, 16);
-	if (strlen(buf) != 0)
-	{
-		xfm20512_get_degree(i2c_fileId, &wakeup_degree);
-		return 1;
-	}
-#else
-	unsigned int value = 0;
-	(void)gpio_get_value(68, &value);
-	if (value != 0)
-	{
-		xfm20512_get_degree(i2c_fileId, &wakeup_degree);
-		while (value != 0)
-		{
-			(void)gpio_get_value(68, &value);
-		}
-		return 1;
-	}
-#endif
+
     return WAKEUP_SUCCESS;
 }
 
@@ -581,6 +600,15 @@ JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_wakeup_WakeUp_close
     close(gpio_fileId);
     
     return WAKEUP_SUCCESS;
+}
+
+/*
+ * DirectionËµÃ÷: ÑØÄæÊ±Õë·½Ïò 0->(0')  1->(90')  2->(180')  3->(270')
+ */
+JNIEXPORT jint JNICALL Java_com_robot_et_core_hardware_wakeup_WakeUp_set_gain_direction
+(JNIEnv *env, jobject obj, jint direction)
+{        
+    return xfm20512_set_gain_direction(direction);
 }
 
 #ifdef __cplusplus
