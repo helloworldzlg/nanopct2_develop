@@ -43,15 +43,12 @@ int main()
     
     SerialPort_init();
    
-    for (index = 0; index < 500; index++)
-    {
-    	tx_buffer[2] = index%10 + 1;
-    	
-    	write(g_uart3_fileid, (void*)tx_buffer, sizeof(tx_buffer));
-    	
-    	usleep(15000);
-	}
-      
+	tx_buffer[2] = 0;
+	
+	write(g_uart3_fileid, (void*)tx_buffer, sizeof(tx_buffer));
+	
+	usleep(15000);
+	      
     return 0;     
 }
 

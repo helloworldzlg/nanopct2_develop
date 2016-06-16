@@ -419,6 +419,44 @@ int xfm20512_exit_wakeup(int fd, unsigned int beam)
     return 0;
 }
 
+/*****************************************************************************
+ 函 数 名  : xfm20512_set_gain_direction
+ 功能描述  : 设置拾音波束的方向
+ 输入参数  : 无
+ 输出参数  : 无
+ 返 回 值  : 
+ 调用函数  : 
+ 被调函数  : 
+ 
+ 修改历史      :
+  1.日    期   : 2016年6月16日
+    作    者   : zlg
+    修改内容   : 新生成函数
+
+*****************************************************************************/
+int xfm20512_set_gain_direction(int fd, unsigned int direction)
+{
+    unsigned int data = 0x00001200 | ((direction & 0x3) << 16);
+    
+    /* 1. 配置拾音波束 */
+    if (i2c_write_proc(fd, xfm20512_ADDR, 0x00, (unsigned char *)&data, sizeof(unsigned int)))
+        return -1;
+        
+    DELAY_MS(1);    
+
+    /* 2. 查询命令状态 */
+    do 
+    {
+        if (i2c_read_proc(fd, xfm20512_ADDR, 0x00, (unsigned char *)&data, sizeof(unsigned int)))
+            return -1;
+            
+        DELAY_MS(1); 
+        
+    } while (0x00030001 != data);
+    
+    return 0;
+}
+
 /****************************************************************
  * i2c_init
  ****************************************************************/
