@@ -14,7 +14,7 @@ int main(void)
     struct fb_var_screeninfo vinfo;  
     struct fb_fix_screeninfo finfo;  
     long int screen_size = 0;  
-    short *fbp565 = NULL;  
+    int *fbp565 = NULL;  
   
     int x = 0, y = 0;  
   
@@ -43,9 +43,11 @@ int main(void)
     screen_size = vinfo.xres * vinfo.yres * vinfo.bits_per_pixel / 8;  
   
     printf("%dx%d, %dbpp, screen_size = %d\n", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel, screen_size );  
-  
+
+    ioctl(fd_fb, FBIOBLANK,0);                        //´ò¿ªLCD±³¹â
+    
     // map framebuffer to user memory   
-    fbp565 = (short *)mmap(0, screen_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd_fb, 0);  
+    fbp565 = (int *)mmap(0, screen_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd_fb, 0);  
   
     if ((int)fbp565 == -1)  
     {  
@@ -58,15 +60,47 @@ int main(void)
         printf("16 bpp framebuffer\n");  
   
         // Red Screen   
-        printf("Red Screen\n");  
-        for(y = 0; y < vinfo.yres/3;  y++)  
-        {  
-            for(x = 0; x < vinfo.xres/2; x++)  
+        printf("Red Screen\n");        
+
+        while (1)
+        {
+            for(y = 0; y < vinfo.yres;  y++)  
             {  
-                *(fbp565 + y * vinfo.xres + x) = RED_COLOR565;  
-            }  
-        }  
+                for(x = 0; x < vinfo.xres; x++)  
+                {  
+                    //*(fbp565 + y * vinfo.xres + x) = RED_COLOR565;
+                    *(fbp565 + y * vinfo.xres + x) = 0x0000FF;
+                }  
+            }
+
+            usleep(100000);
+            
+            for(y = 0; y < vinfo.yres;  y++)  
+            {  
+                for(x = 0; x < vinfo.xres; x++)  
+                {  
+                    //*(fbp565 + y * vinfo.xres + x) = RED_COLOR565;
+                    *(fbp565 + y * vinfo.xres + x) = 0x00FF00;
+                }  
+            }
+
+            usleep(100000);
+
+            for(y = 0; y < vinfo.yres;  y++)  
+            {  
+                for(x = 0; x < vinfo.xres; x++)  
+                {  
+                    //*(fbp565 + y * vinfo.xres + x) = RED_COLOR565;
+                    *(fbp565 + y * vinfo.xres + x) = 0xFF0000;
+                }  
+            } 
+
+            usleep(100000);
+        }
+        
   
+
+  #if 0
         // Green Screen   
         printf("Green Screen\n");  
         for(y = vinfo.yres/3; y < (vinfo.yres*2)/3; y++)  
@@ -86,6 +120,8 @@ int main(void)
                 *(fbp565 + y * vinfo.xres + x) = BLUE_COLOR565;  
             }  
         }  
+
+  #endif
     }        
     else  
     {  
